@@ -108,7 +108,7 @@ stages:
   dependsOn: Dev
       #condition: eq(variables['Build.Reason'], 'Schedule') | RUN THIS TO RUN THE TEST STAGE ONLY WHEN TEH SCHEDULE REQUIREMENTS ARE MET
   jobs:
-  - dependsOn: Dev
+  - deployment: Deploy
     pool:
       vmImage: 'ubuntu-20.04'
     environment: test
