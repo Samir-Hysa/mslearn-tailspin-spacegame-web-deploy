@@ -5,6 +5,14 @@ variables:
   buildConfiguration: 'Release'
   releaseBranchName: 'release'
 
+schedules:
+- cron : '0 3 * * *'
+  displayName: "Deploy every day at 3 A.M."
+  branches:
+    include:
+    - release
+  always: false
+
 stages:
 - stage: 'Build'
   displayName: 'Build the web application'
@@ -83,6 +91,30 @@ stages:
     variables:
     - group: Release
     strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+          - task: AzureWebApp@1
+            displayName: 'Azure App Service Deploy: website'
+            inputs:
+              azureSubscription: 'Resource Manager - Tailspin - Space Game'
+              appName: '$(WebAppnameDev)'
+              package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+
+- stage: 'Test'
+  displayName: "deploy to test env"
+  dependsOn: Dev
+      #condition: eq(variables['Build.Reason'], 'Schedule') | RUN THIS TO RUN THE TEST STAGE ONLY WHEN TEH SCHEDULE REQUIREMENTS ARE MET
+  jobs:
+  - dependsOn: Dev
+    pool:
+      vmImage: 'ubuntu-20.04'
+    environment: test
+    variables:
+    - group: 'Release'
+    strategy: :
       runOnce:
         deploy:
           steps:
